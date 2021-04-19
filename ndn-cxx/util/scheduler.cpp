@@ -97,7 +97,7 @@ Scheduler::schedule(time::nanoseconds after, EventCallback callback)
 {
   BOOST_ASSERT(callback != nullptr);
 
-  auto i = m_queue.insert(make_shared<EventInfo>(after, std::move(callback), ns3::Simulator::GetContext()));
+  auto i = m_queue.insert(std::make_shared<EventInfo>(after, std::move(callback), ns3::Simulator::GetContext()));
   (*i)->queueIt = i;
 
   if (!m_isEventExecuting && i == m_queue.begin()) {
