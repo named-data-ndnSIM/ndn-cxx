@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2013-2016 Regents of the University of California.
+/*
+ * Copyright (c) 2013-2019 Regents of the University of California.
  *
  * This file is part of ndn-cxx library (NDN C++ library with eXperimental eXtensions).
  *
@@ -19,39 +19,43 @@
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  */
 
-#define BOOST_TEST_MAIN 1
-#define BOOST_TEST_DYN_LINK 1
 #define BOOST_TEST_MODULE ndn-cxx Scheduler Benchmark
+#include "tests/boost-test.hpp"
 
-#include "util/scheduler.hpp"
+#include "ndn-cxx/util/scheduler.hpp"
+#include "tests/integrated/timed-execute.hpp"
 
-#include "boost-test.hpp"
+#include <boost/asio/io_service.hpp>
+#include <iostream>
 
 namespace ndn {
-namespace util {
 namespace scheduler {
 namespace tests {
+
+using namespace ndn::tests;
 
 BOOST_AUTO_TEST_CASE(ScheduleCancel)
 {
   boost::asio::io_service io;
   Scheduler sched(io);
 
-  const int nEvents = 1000000;
+  const size_t nEvents = 1000000;
   std::vector<EventId> eventIds(nEvents);
 
-  time::steady_clock::TimePoint t1 = time::steady_clock::now();
-  for (int i = 0; i < nEvents; ++i) {
-    eventIds[i] = sched.scheduleEvent(time::seconds(1), []{});
-  }
-  time::steady_clock::TimePoint t2 = time::steady_clock::now();
-  for (int i = 0; i < nEvents; ++i) {
-    sched.cancelEvent(eventIds[i]);
-  }
-  time::steady_clock::TimePoint t3 = time::steady_clock::now();
+  auto d1 = timedExecute([&] {
+    for (size_t i = 0; i < nEvents; ++i) {
+      eventIds[i] = sched.schedule(1_s, []{});
+    }
+  });
 
-  BOOST_TEST_MESSAGE("schedule " << nEvents << " events: " << (t2 - t1));
-  BOOST_TEST_MESSAGE("cancel " << nEvents << " events: " << (t3 - t2));
+  auto d2 = timedExecute([&] {
+    for (size_t i = 0; i < nEvents; ++i) {
+      eventIds[i].cancel();
+    }
+  });
+
+  std::cout << "schedule " << nEvents << " events: " << d1 << std::endl;
+  std::cout << "cancel " << nEvents << " events: " << d2 << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(Execute)
@@ -59,30 +63,29 @@ BOOST_AUTO_TEST_CASE(Execute)
   boost::asio::io_service io;
   Scheduler sched(io);
 
-  const int nEvents = 1000000;
-  int nExpired = 0;
+  const size_t nEvents = 1000000;
+  size_t nExpired = 0;
 
   // Events should expire at t1, but execution finishes at t2. The difference is the overhead.
-  time::steady_clock::TimePoint t1 = time::steady_clock::now() + time::seconds(5);
+  time::steady_clock::TimePoint t1 = time::steady_clock::now() + 5_s;
   time::steady_clock::TimePoint t2;
   // +1ms ensures this extra event is executed last. In case the overhead is less than 1ms,
   // it will be reported as 1ms.
-  sched.scheduleEvent(t1 - time::steady_clock::now() + time::milliseconds(1), [&] {
+  sched.schedule(t1 - time::steady_clock::now() + 1_ms, [&] {
     t2 = time::steady_clock::now();
     BOOST_REQUIRE_EQUAL(nExpired, nEvents);
   });
 
-  for (int i = 0; i < nEvents; ++i) {
-    sched.scheduleEvent(t1 - time::steady_clock::now(), [&] { ++nExpired; });
+  for (size_t i = 0; i < nEvents; ++i) {
+    sched.schedule(t1 - time::steady_clock::now(), [&] { ++nExpired; });
   }
 
   io.run();
 
   BOOST_REQUIRE_EQUAL(nExpired, nEvents);
-  BOOST_TEST_MESSAGE("execute " << nEvents << " events: " << (t2 - t1));
+  std::cout << "execute " << nEvents << " events: " << (t2 - t1) << std::endl;
 }
 
 } // namespace tests
 } // namespace scheduler
-} // namespace util
 } // namespace ndn

@@ -6,45 +6,49 @@ source "$JDIR"/util.sh
 
 set -x
 
-sudo rm -Rf /usr/local/include/ndn-cxx
-sudo rm -f /usr/local/lib/libndn-cxx*
-sudo rm -f /usr/local/lib/pkgconfig/libndn-cxx*
+sudo rm -f /usr/local/bin/ndnsec*
+sudo rm -fr /usr/local/include/ndn-cxx
+sudo rm -f /usr/local/lib{,64}/libndn-cxx*
+sudo rm -f /usr/local/lib{,64}/pkgconfig/libndn-cxx.pc
+
+if [[ $JOB_NAME == *"code-coverage" ]]; then
+    COVERAGE="--with-coverage"
+elif [[ -z $DISABLE_ASAN ]]; then
+    ASAN="--with-sanitizer=address"
+fi
+if [[ -n $USE_OPENSSL_1_1 ]] && has OSX $NODE_LABELS; then
+    OPENSSL="--with-openssl=/usr/local/opt/openssl@1.1"
+fi
 
 # Cleanup
-sudo ./waf -j1 --color=yes distclean
+sudo_preserve_env PATH -- ./waf --color=yes distclean
 
 if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
   # Configure/build static library in optimized mode with tests
-  ./waf -j1 --color=yes configure --enable-static --disable-shared --with-tests
-  ./waf -j1 --color=yes build
+  ./waf --color=yes configure --enable-static --disable-shared --with-tests $OPENSSL
+  ./waf --color=yes build -j${WAF_JOBS:-1}
 
   # Cleanup
-  sudo ./waf -j1 --color=yes distclean
+  sudo_preserve_env PATH -- ./waf --color=yes distclean
 
   # Configure/build static and shared library in optimized mode without tests
-  ./waf -j1 --color=yes configure --enable-static --enable-shared
-  ./waf -j1 --color=yes build
+  ./waf --color=yes configure --enable-static --enable-shared $OPENSSL
+  ./waf --color=yes build -j${WAF_JOBS:-1}
 
   # Cleanup
-  sudo ./waf -j1 --color=yes distclean
+  sudo_preserve_env PATH -- ./waf --color=yes distclean
 fi
 
 # Configure/build shared library in debug mode with tests/examples and without precompiled headers
-if [[ $JOB_NAME == *"code-coverage" ]]; then
-    COVERAGE="--with-coverage"
-elif ! has OSX-10.9 $NODE_LABELS && ! has OSX-10.11 $NODE_LABELS; then
-    ASAN="--with-sanitizer=address"
-fi
-./waf -j1 --color=yes configure --disable-static --enable-shared --debug --with-tests --with-examples --without-pch $COVERAGE $ASAN
-./waf -j1 --color=yes build
+./waf --color=yes configure --disable-static --enable-shared --debug --with-tests \
+                            --with-examples --without-pch $ASAN $COVERAGE $OPENSSL
+./waf --color=yes build -j${WAF_JOBS:-1}
 
 # (tests will be run against debug version)
 
 # Install
-sudo ./waf -j1 --color=yes install
+sudo_preserve_env PATH -- ./waf --color=yes install
 
 if has Linux $NODE_LABELS; then
     sudo ldconfig
-elif has FreeBSD $NODE_LABELS; then
-    sudo ldconfig -a
 fi

@@ -52,7 +52,7 @@ extended it to C++.
 
         } // namespace example
 
-    Note that code inside namespace is **not** indented. Avoid following:
+    Note that code inside namespace is **not** indented. Avoid the following:
 
     .. code-block:: c++
 
@@ -65,7 +65,7 @@ extended it to C++.
         //
         // } // namespace example
 
-1.4. The class declarations should have the following form:
+1.4. Class declarations should have the following form:
 
     .. code-block:: c++
 
@@ -73,21 +73,25 @@ extended it to C++.
         {
         public:
           ... <public methods> ...
+
         protected:
           ... <protected methods> ...
+
         private:
           ... <private methods> ...
 
         public:
           ... <public data> ...
+
         protected:
           ... <protected data> ...
+
         private:
           ... <private data> ...
         };
 
     ``public``, ``protected``, ``private`` may be repeated several times without
-    interleaving (e.g., public, public, public, private, private) if this allows better
+    interleaving (e.g., public, public, public, private, private) if this improves
     readability of the code.
 
     Nested classes can be defined in appropriate visibility section, either in methods
@@ -135,23 +139,6 @@ extended it to C++.
           statements;
         }
 
-    or (less preferred):
-
-    .. code-block:: c++
-
-        if (condition)
-          {
-            statements;
-          }
-        else if (condition)
-          {
-            statements;
-          }
-        else
-          {
-            statements;
-          }
-
 1.7. A ``for`` statement should have the following form:
 
     .. code-block:: c++
@@ -160,23 +147,14 @@ extended it to C++.
           statements;
         }
 
-    or (less preferred):
-
-    .. code-block:: c++
-
-        for (initialization; condition; update)
-          {
-            statements;
-          }
-
-    An empty for statement should have the following form:
+    An empty ``for`` statement should have the following form:
 
     .. code-block:: c++
 
         for (initialization; condition; update)
           ;
 
-    This emphasizes the fact that the for statement is empty and it makes it obvious for
+    This emphasizes the fact that the ``for`` statement is empty and makes it obvious for
     the reader that this is intentional.  Empty loops should be avoided however.
 
 1.8. A ``while`` statement should have the following form:
@@ -186,15 +164,6 @@ extended it to C++.
         while (condition) {
           statements;
         }
-
-    or (less preferred):
-
-    .. code-block:: c++
-
-        while (condition)
-          {
-            statements;
-          }
 
 1.9. A ``do-while`` statement should have the following form:
 
@@ -211,7 +180,7 @@ extended it to C++.
         switch (condition) {
           case ABC:        // 2 space indent
             statements;    // 4 space indent
-            // Fallthrough
+            NDN_CXX_FALLTHROUGH;
 
           case DEF:
             statements;
@@ -242,7 +211,7 @@ extended it to C++.
           // Correct style
           case A1: {
             statements;
-            // Fallthrough
+            NDN_CXX_FALLTHROUGH;
           }
 
           // Incorrect style: braces should cover the entire case block
@@ -263,7 +232,7 @@ extended it to C++.
         switch (condition) {
         case ABC:        // no indent
           statements;    // 2 space indent
-          // Fallthrough
+          NDN_CXX_FALLTHROUGH;
 
         case DEF:
           statements;
@@ -274,9 +243,11 @@ extended it to C++.
           break;
         }
 
-    The explicit ``Fallthrough`` comment should be included whenever there is a case
-    statement without a break statement.  Leaving the break out is a common error, and it
-    must be made clear that it is intentional when it is not there.
+    The ``NDN_CXX_FALLTHROUGH;`` annotation must be included whenever there is
+    a case without a break statement. Leaving the break out is a common error,
+    and it must be made clear that it is intentional when it is not there.
+    Moreover, modern compilers will warn when a case that falls through is not
+    explicitly annotated.
 
 1.11. A ``try-catch`` statement should have the following form:
 
@@ -288,19 +259,6 @@ extended it to C++.
         catch (const Exception& exception) {
           statements;
         }
-
-    or (less preferred):
-
-    .. code-block:: c++
-
-        try
-          {
-            statements;
-          }
-        catch (const Exception& exception)
-          {
-            statements;
-          }
 
 1.12. The incompleteness of split lines must be made obvious.
 
@@ -315,9 +273,9 @@ extended it to C++.
           ...
         }
 
-    Split lines occurs when a statement exceed the 80 column limit given above. It is
+    Split lines occur when a statement exceeds the column limit given in rule 1.1. It is
     difficult to give rigid rules for how lines should be split, but the examples above should
-    give a general hint.In general:
+    give a general hint. In general:
 
     * Break after a comma.
     * Break after an operator.
@@ -325,7 +283,7 @@ extended it to C++.
 
     Exceptions:
 
-    * The following is the standard practice with operator<<:
+    * The following is standard practice with ``operator<<``:
 
         .. code-block:: c++
 
@@ -371,7 +329,7 @@ should take the following form:
           statements;
         }
 
-    If the function has no parameters, ``()`` should be omitted.
+    If the lambda has no parameters, ``()`` should be omitted.
 
     .. code-block:: c++
 
@@ -379,8 +337,8 @@ should take the following form:
           statements;
         }
 
-    Capture-all (``[&]`` and ``[=]``) is permitted, but its usage should be minimized.
-    Only use capture-all when it significantly simplifies code and improves readability.
+    Either capture-default (``[&]`` or ``[=]``) is permitted, but its usage should be minimized.
+    Only use a capture-default when it significantly simplifies code and improves readability.
 
     .. code-block:: c++
 
@@ -392,9 +350,9 @@ should take the following form:
           statements;
         }
 
-    Trailing return type should be omitted. Write them only when compiler cannot deduce
-    return type automatically, or when it improves readability.
-    ``()`` is required by C++ standard when trailing return type is written.
+    Trailing return type should be omitted whenever possible. Add it only when the compiler
+    cannot deduce the return type automatically, or when it improves readability.
+    ``()`` is required by the C++ standard when ``mutable`` or a trailing return type is used.
 
     .. code-block:: c++
 
@@ -474,7 +432,6 @@ extension ``.cpp``
 
         my-class.hpp, my-class.cpp
 
-
 2.2. Names representing types must be written in English in mixed case starting with upper case.
 
     .. code-block:: c++
@@ -502,11 +459,11 @@ to separate words.
         static const double PI = 3.14;
 
     In some cases, it is a better (or is the only way for complex constants in header-only
-    classes) to implement the value as a method:
+    classes) to implement the value as a method.
 
     .. code-block:: c++
 
-        int
+        static int          // declare constexpr if possible
         getMaxIterations()
         {
           return 25;
@@ -541,19 +498,19 @@ written in mixed case starting with lower case.
         } // namespace analyzer
         } // namespace model
 
-2.7. Names representing generic template types should be a single uppercase letter
+2.7. Names representing generic template types should be a single uppercase letter.
 
     .. code-block:: c++
 
         template<class T> ...
         template<class C, class D> ...
 
-    However, when template parameter represents a certain concept and expected to have a
-    certain interface, the name should be explicitly spelled out:
+    However, when a template parameter represents a certain concept and is expected
+    to have a certain interface, the name should be explicitly spelled out.
 
     .. code-block:: c++
 
-        template<class FaceBase> ...
+        template<class InputIterator> ...
         template<class Packet> ...
 
 2.8. Abbreviations and acronyms must not be uppercase when used as name.
@@ -585,7 +542,6 @@ written in mixed case starting with lower case.
 
           static std::string s_name;
         };
-
 
 2.11. Variables with a large scope should have long (explicit) names, variables with a small
 scope can have short names.
@@ -654,16 +610,11 @@ scope can have short names.
     The notation is taken from mathematics where it is an established convention for
     indicating a number of objects.
 
-
-2.18. The suffix ``No`` should be used for variables representing an entity number.
+2.18. The suffix ``Num`` or ``No`` should be used for variables representing an entity number.
 
     .. code-block:: c++
 
-        tableNo, employeeNo
-
-    The notation is taken from mathematics where it is an established convention for
-    indicating an entity number.  An elegant alternative is to prefix such variables with
-    an ``i``: ``iTable``, ``iEmployee``.  This effectively makes them named iterators.
+        tableNum, tableNo, employeeNum, employeeNo
 
 2.19. The prefix ``is``, ``has``, ``need``, or similar should be used for boolean variables and
 methods.
@@ -718,9 +669,9 @@ notation).
 2.24. Exceptions can be suffixed with either ``Exception`` (e.g., ``SecurityException``) or
 ``Error`` (e.g., ``SecurityError``).
 
-    The recommended method is to declare exception class ``Exception`` or ``Error`` as an
-    inner class, from which the exception is thrown.  For example, when declaring class
-    ``Foo`` that can throw errors, one can write the following:
+    The recommended method is to declare an exception class ``Exception`` or ``Error`` as
+    a nested type inside the class from which the exception is thrown.  For example, when
+    defining a class ``Foo`` that can throw errors, one can write the following:
 
     .. code-block:: c++
 
@@ -728,12 +679,16 @@ notation).
 
         class Foo
         {
+        public:
           class Error : public std::runtime_error
           {
           public:
-            explicit
-            Error(const std::string& what)
-              : std::runtime_error(what)
+            // You can inherit constructors from std::runtime_error like this:
+            using std::runtime_error::runtime_error;
+
+            // Additional constructors, if desired, can be declared as usual:
+            Error(const std::string& what, const std::exception& inner)
+              : std::runtime_error(what + ": " + inner.what())
             {
             }
           };
@@ -742,7 +697,6 @@ notation).
     In addition to that, if class Foo is a base class or interface for some class
     hierarchy, then child classes should should define their own ``Error`` or
     ``Exception`` classes that are inherited from the parent's Error class.
-
 
 2.25. Functions (methods returning something) should be named after what they return and
 procedures (void methods) after what they do.
@@ -759,8 +713,8 @@ not in the primary processing path.
 
 3.2. Header files must contain an include guard.
 
-    For example, header file located in ``module/class-name.hpp`` or in
-    ``src/module/class-name.hpp`` should have header guard in the following form:
+    For example, a header file named ``module/class-name.hpp`` or
+    ``src/module/class-name.hpp`` should have a header guard in the following form:
 
     .. code-block:: c++
 
@@ -769,39 +723,42 @@ not in the primary processing path.
         ...
         #endif // APP_MODULE_CLASS_NAME_HPP
 
-    The name should follow the location of the file inside the source tree and prevents
-    naming conflicts.  Header guard should be prefixed with the application/library name
-    to avoid conflicts with other packaged and libraries.
+    The macro name should reflect the path of the header file relative to the root of the
+    source tree, in order to prevent naming conflicts. The header guard should be prefixed
+    with the application/library name to avoid conflicts with other packages and libraries.
 
-3.3. Header files which are in the same source distribution should be included in
-``"quotes"``, if possible with a path relative to the source file.  Header files for
-system and other external libraries should be included in ``<angle brackets>``.
+3.3. Include directives for system headers and other external libraries should use
+``<angle brackets>``. Header files in the same source code repository should be included
+using ``"quotes"``.
 
     .. code-block:: c++
+
+        #include "ndn-cxx/util/random.hpp"
 
         #include <string>
         #include <boost/lexical_cast.hpp>
 
-        #include "util/random.hpp"
+    All of a project's header files should be included with their path relative to
+    the project's source directory. The use of UNIX directory shortcuts ``.``
+    (the current directory) and ``..`` (the parent directory) is discouraged.
 
-3.4. Include statements should be sorted and grouped. Sorted by their hierarchical position
-in the system with low level files included first. Leave an empty line between groups
-of include statements.
+3.4. Include statements should be grouped. Same-project headers should be included first.
+Leave an empty line between groups of include statements. Sort alphabetically within a group.
+For example, the include section of ``ndn-cxx/foo/bar.cpp`` may look like this:
 
     .. code-block:: c++
 
+        #include "ndn-cxx/impl/pending-interest.hpp"
+        #include "ndn-cxx/util/random.hpp"
+
+        #include <cstdlib>
         #include <fstream>
         #include <iomanip>
 
         #include <boost/lexical_cast.hpp>
         #include <boost/regex.hpp>
 
-        #include "detail/pending-interest.hpp"
-        #include "util/random.hpp"
-
-
 3.5. Types that are local to one file only can be declared inside that file.
-
 
 3.6. Implicit conversion is generally allowed.
 
@@ -816,11 +773,10 @@ of include statements.
     ``const_cast`` instead where appropriate.  Use ``static_pointer_cast``,
     ``dynamic_pointer_cast``, ``const_pointer_cast`` when dealing with ``shared_ptr``.
 
-
 3.7. Variables should be initialized where they are declared.
 
     This ensures that variables are valid at any time. Sometimes it is impossible to
-    initialize a variable to a valid value where it is declared:
+    initialize a variable to a valid value where it is declared.
 
     .. code-block:: c++
 
@@ -830,20 +786,19 @@ of include statements.
     In these cases it should be left uninitialized rather than initialized to some phony
     value.
 
-3.8. In most cases, class instance variables should not be declared public.
+3.8. In most cases, class data members should not be declared ``public``.
 
-    The concepts of information hiding and encapsulation are violated by public variables. Use
-    private variables and access methods instead.
+    Public data members violate the concepts of information hiding and encapsulation.
+    Use private variables and public accessor methods instead.
 
     Exceptions to this rule:
 
-    * when the class is essentially a dumb data structure with no or minimal behavior
-      (equivalent to a C struct, also known as PODS). In this case it is appropriate to make
-      the instance variables public by using struct.
+    * When the class is essentially a dumb data structure with no or minimal behavior
+      (equivalent to a C struct, also known as POD type). In this case it is appropriate
+      to make the instance variables public by using ``struct``.
 
-    * when the class is used only inside the compilation unit, e.g., when implementing pImpl
+    * When the class is used only inside the compilation unit, e.g., when implementing pImpl
       idiom (aka Bridge pattern) or similar cases.
-
 
 3.9. C++ pointers and references should have their reference symbol next to the type rather
 than to the name.
@@ -866,13 +821,13 @@ than to the name.
 
     .. code-block:: c++
 
-        isDone = false;        // NOT: bool isDone = false;
+        bool isDone = false;   // NOT: bool isDone = false;
         while (!isDone) {      //      // other stuff
-          :                    //      while (!isDone) {
-        }                      //        :
+          ...                  //      while (!isDone) {
+        }                      //        ...
                                //      }
 
-3.13. The form while (true) should be used for infinite loops.
+3.13. The form ``while (true)`` should be used for infinite loops.
 
     .. code-block:: c++
 
@@ -905,7 +860,7 @@ instead.
         // }
 
     By assigning boolean variables to expressions, the program gets automatic
-    documentation.  The construction will be easier to read, debug and maintain.
+    documentation.  The construction will be easier to read, debug, and maintain.
 
 3.15. The conditional should be put on a separate line.
 
@@ -935,11 +890,11 @@ instead.
 should be considered declared as named constants instead.
 
     If the number does not have an obvious meaning by itself, the readability is enhanced
-    by introducing a named constant instead.  A different approach is to introduce a method
+    by introducing a named constant instead. A different approach is to introduce a method
     from which the constant can be accessed.
 
-3.18. Floating point constants should always be written with decimal point, at least one
-    decimal, and without omitting 0 before decimal point.
+3.18. Floating point literals should always be written with a decimal point, at least one
+decimal, and without omitting 0 before the decimal point.
 
     .. code-block:: c++
 
@@ -952,9 +907,9 @@ should be considered declared as named constants instead.
 
 3.19. ``goto`` should not be used.
 
-Goto statements violate the idea of structured code.  Only in some very few cases (for
-instance breaking out of deeply nested structures) should goto be considered, and only if
-the alternative structured counterpart is proven to be less readable.
+    ``goto`` statements violate the idea of structured code. Only in very few cases (for
+    instance, breaking out of deeply nested structures) should ``goto`` be considered,
+    and only if the alternative structured counterpart is proven to be less readable.
 
 3.20. ``nullptr`` should be used to represent a null pointer, instead of "0" or "NULL".
 
@@ -1004,7 +959,7 @@ the alternative structured counterpart is proven to be less readable.
 
 3.24. All comments should be written in English.
 
-    In an international environment English is the preferred language.
+    In an international environment, English is the preferred language.
 
 3.25. Use ``//`` for all comments, including multi-line comments.
 
@@ -1021,7 +976,7 @@ the alternative structured counterpart is proven to be less readable.
     always start with an upper case letter and end with a period.
 
     However, method and class documentation comments should use ``/** */`` style for
-    Doxygen, JavaDoc and JSDoc.
+    Doxygen, JavaDoc and JSDoc. License boilerplate should use ``/* */`` style.
 
 3.26. Comments should be included relative to their position in the code.
 
@@ -1089,7 +1044,6 @@ the alternative structured counterpart is proven to be less readable.
     .. code-block:: c++
 
         std::list<std::string> strings;
-
         for (const auto& str : strings) {
           statements; // cannot modify `str`
         }
@@ -1097,11 +1051,14 @@ the alternative structured counterpart is proven to be less readable.
           statements; // can modify `str`
         }
 
-3.30. Annotate with ``override`` or ``final`` when overriding a virtual method or destructor.
+3.30. Use the ``override`` or ``final`` specifier when overriding a virtual
+member function or a virtual destructor.
 
-    ``virtual`` should still be used along with ``override`` and ``final``,
-    so that a human reader can easily recognize a virtual method
-    without looking toward the end of the function signature.
+    ``virtual`` MUST NOT be used along with ``final``, so that the compiler
+    can generate an error when a final function does not override.
+
+    ``virtual`` SHOULD NOT be used along with ``override``, for consistency
+    with ``final``.
 
     .. code-block:: c++
 
@@ -1115,19 +1072,18 @@ the alternative structured counterpart is proven to be less readable.
         class InputStream : public Stream
         {
         public:
-          virtual void
+          void
           open() override;
         };
 
         class Console : public InputStream
         {
         public:
-          virtual void
-          open() override;
+          void
+          open() final;
         };
 
 3.31. The recommended way to throw an exception derived from ``std::exception`` is to use
-the ``BOOST_THROW_EXCEPTION``
-`macro <http://www.boost.org/doc/libs/1_42_0/libs/exception/doc/BOOST_THROW_EXCEPTION.html>`__.
-Exceptions thrown using this macro will be augmented with additional diagnostic information,
-including file name, line number, and function name from where the exception was thrown.
+``NDN_THROW`` or one of the other ``NDN_THROW_*`` macros.
+Exceptions thrown using these macros will be augmented with additional diagnostic information,
+including the file name, line number, and function name from which the exception was thrown.

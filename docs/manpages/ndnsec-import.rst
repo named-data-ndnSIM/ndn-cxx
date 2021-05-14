@@ -1,33 +1,33 @@
 ndnsec-import
 =============
 
-``ndnsec-import`` is a tool to import an identity's security data that is prepared by
-``ndnsec-export``.
+Synopsis
+--------
 
-Usage
------
-
-::
-
-    $ ndnsec-import [-h] [-p] input
+**ndnsec-import** [**-h**] [**-P** *passphrase*] *file*
 
 Description
 -----------
 
-``ndnsec-import`` read data from ``input``. It will ask for password if the input contains private
-key. If ``input`` is ``-``, security data will be read from standard input.
+:program:`ndnsec-import` imports a certificate and its private key from a file
+created by :program:`ndnsec-export`. It will ask for the passphrase used to
+encrypt the private key.
+
+If *file* is "-", read from the standard input.
 
 Options
 -------
 
-``-p``
-  Indicates the imported data containing private key. A password will be asked for data encryption.
+.. option:: -P <passphrase>, --password <passphrase>
 
-Examples
---------
+   Passphrase to use for the export. If empty or not specified, the user is
+   interactively asked to type the passphrase on the terminal. Note that
+   specifying the passphrase via this option is insecure, as it can potentially
+   end up in the shell's history, be visible in :command:`ps` output, and so on.
 
-Import an identity's security data including private key:
+Example
+-------
 
-::
+Import a certificate and private key from a file::
 
-    $ ndnsec-import -p input_file
+    $ ndnsec-import alice.ndnkey

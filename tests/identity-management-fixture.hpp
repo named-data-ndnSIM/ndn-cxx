@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2013-2016 Regents of the University of California.
+/*
+ * Copyright (c) 2013-2018 Regents of the University of California.
  *
  * This file is part of ndn-cxx library (NDN C++ library with eXperimental eXtensions).
  *
@@ -22,47 +22,78 @@
 #ifndef NDN_TESTS_IDENTITY_MANAGEMENT_FIXTURE_HPP
 #define NDN_TESTS_IDENTITY_MANAGEMENT_FIXTURE_HPP
 
-#include "security/key-chain.hpp"
-#include <vector>
+#include "ndn-cxx/security/v2/key-chain.hpp"
+#include "ndn-cxx/security/signing-helpers.hpp"
 
-#include "boost-test.hpp"
+#include "tests/test-home-fixture.hpp"
+
+#include <vector>
 
 namespace ndn {
 namespace tests {
 
+class IdentityManagementBaseFixture : public TestHomeFixture<DefaultPibDir>
+{
+public:
+  ~IdentityManagementBaseFixture();
+
+  bool
+  saveCertToFile(const Data& obj, const std::string& filename);
+
+protected:
+  std::set<Name> m_identities;
+  std::set<std::string> m_certFiles;
+};
+
 /**
- * @brief IdentityManagementFixture is a test suite level fixture.
- * Test cases in the suite can use this fixture to create identities.
- * Identities added via addIdentity method are automatically deleted
- * during test teardown.
+ * @brief A test suite level fixture to help with identity management
+ *
+ * Test cases in the suite can use this fixture to create identities.  Identities,
+ * certificates, and saved certificates are automatically removed during test teardown.
  */
-class IdentityManagementFixture
+class IdentityManagementFixture : public IdentityManagementBaseFixture
 {
 public:
   IdentityManagementFixture();
 
-  ~IdentityManagementFixture();
-
-  /// @brief add identity, return true if succeed.
-  bool
-  addIdentity(const Name& identity, const KeyParams& params = KeyChain::DEFAULT_KEY_PARAMS);
+  /**
+   * @brief Add identity @p identityName
+   * @return name of the created self-signed certificate
+   */
+  security::Identity
+  addIdentity(const Name& identityName,
+              const KeyParams& params = security::v2::KeyChain::getDefaultKeyParams());
 
   /**
-   *  @brief save identity certificate to a file
-   *  @param identity identity name
+   *  @brief Save identity certificate to a file
+   *  @param identity identity
    *  @param filename file name, should be writable
-   *  @param wantAdd if true, add new identity when necessary
    *  @return whether successful
    */
   bool
-  saveIdentityCertificate(const Name& identity, const std::string& filename, bool wantAdd = false);
+  saveCertificate(const security::Identity& identity, const std::string& filename);
+
+  /**
+   * @brief Issue a certificate for \p subIdentityName signed by \p issuer
+   *
+   *  If identity does not exist, it is created.
+   *  A new key is generated as the default key for identity.
+   *  A default certificate for the key is signed by the issuer using its default certificate.
+   *
+   *  @return the sub identity
+   */
+  security::Identity
+  addSubCertificate(const Name& subIdentityName, const security::Identity& issuer,
+                    const KeyParams& params = security::v2::KeyChain::getDefaultKeyParams());
+
+  /**
+   * @brief Add a self-signed certificate to @p key with issuer ID @p issuer
+   */
+  security::v2::Certificate
+  addCertificate(const security::Key& key, const std::string& issuer);
 
 protected:
   KeyChain m_keyChain;
-
-private:
-  std::vector<Name> m_identities;
-  std::vector<std::string> m_certFiles;
 };
 
 } // namespace tests

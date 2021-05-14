@@ -1,56 +1,54 @@
 ndnsec-cert-dump
 ================
 
-``ndnsec-cert-dump`` is a tool to dump a certificate from **Public Info Base** or file and output
-it to standard output.
+Synopsis
+--------
 
-Usage
------
-
-::
-
-    $ ndnsec-cert-dump [-h] [-p] [-ikf] name
+**ndnsec-cert-dump** [**-h**] [**-p**] [**-r** [**-H** *host*] [**-P** *port*]]
+[**-i**\|\ **-k**\|\ **-f**] *name*
 
 Description
 -----------
 
-``ndnsec-cert-dump`` can read a certificate from **Public Info Base (PIB)** or a file and output
-the certificate to standard output.
+:program:`ndnsec-cert-dump` reads a certificate from the **Public Info Base (PIB)**
+or from a file, and prints it on the standard output.
 
-By default, ``name`` is interpreted as a certificate name.
+By default, *name* is interpreted as a certificate name.
 
 Options
 -------
 
-``-i``
-  Interpret ``name`` as an identity name. If specified, the certificate to dump is the default
-  certificate of the identity.
+.. option:: -i, --identity
 
-``-k``
-  Interpret ``name`` as a key name. If specified, the certificate to dump is the default certificate
-  of the key.
+   Interpret *name* as an identity name. If specified, the certificate to dump
+   is the default certificate of the identity.
 
-``-f``
-  Interpret ``name`` as a path to a file containing the certificate. If ``name`` is ``-``,
-  certificate will be read from standard input.
+.. option:: -k, --key
 
-``-p``
-  Print out the certificate to a human-readable format.
+   Interpret *name* as a key name. If specified, the certificate to dump is the
+   default certificate of the key.
 
-Examples
---------
+.. option:: -f, --file
 
-Dump a certificate from PIB to standard output:
-::
+   Interpret *name* as a path to a file containing the certificate. If *name*
+   is "-", the certificate will be read from the standard input.
 
-    $ ndnsec-cert-dump /ndn/test/KEY/david/ksk-1396913058196/ID-CERT/%00%00%01E%3E%9D%A0%DE
+.. option:: -p, --pretty
 
-Dump a certificate to a human-readable format:
-::
+   Print the certificate in a human-readable format.
 
-    $ ndnsec-cert-dump -p /ndn/test/KEY/david/ksk-1396913058196/ID-CERT/%00%00%01E%3E%9D%A0%DE
+Example
+-------
+
+Dump a certificate from PIB to standard output::
+
+    $ ndnsec-cert-dump /ndn/test/david/KEY/ksk-1396913058196/ID-CERT/%00%00%01E%3E%9D%A0%DE
+
+Dump a certificate in human-readable format::
+
+    $ ndnsec-cert-dump -p /ndn/test/david/KEY/ksk-1396913058196/ID-CERT/%00%00%01E%3E%9D%A0%DE
     Certificate name:
-      /ndn/test/KEY/david/ksk-1396913058196/ID-CERT/%00%00%01E%3E%9D%A0%DE
+      /ndn/test/david/KEY/ksk-1396913058196/ID-CERT/%00%00%01E%3E%9D%A0%DE
     Validity:
       NotBefore: 20140401T000000
       NotAfter: 20150331T235959

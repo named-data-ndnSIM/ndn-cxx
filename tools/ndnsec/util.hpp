@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2013-2016 Regents of the University of California.
+/*
+ * Copyright (c) 2013-2019 Regents of the University of California.
  *
  * This file is part of ndn-cxx library (NDN C++ library with eXperimental eXtensions).
  *
@@ -17,82 +17,40 @@
  * <http://www.gnu.org/licenses/>.
  *
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
- *
- * @author Yingdi Yu <http://irl.cs.ucla.edu/~yingdi/>
  */
 
 #ifndef NDN_TOOLS_NDNSEC_UTIL_HPP
 #define NDN_TOOLS_NDNSEC_UTIL_HPP
 
-#include <iostream>
+#include "ndn-cxx/security/key-chain.hpp"
+#include "ndn-cxx/security/v2/additional-description.hpp"
+#include "ndn-cxx/util/io.hpp"
+
 #include <fstream>
+#include <iostream>
 #include <string>
-#include <cstring>
 
 #include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/asio.hpp>
-#include <boost/exception/all.hpp>
+#include <boost/program_options/variables_map.hpp>
 
-#include "encoding/buffer-stream.hpp"
-#include "security/key-chain.hpp"
-#include "security/transform.hpp"
-#include "util/io.hpp"
+namespace ndn {
+namespace ndnsec {
+
+class CannotLoadCertificate : public std::runtime_error
+{
+public:
+  CannotLoadCertificate(const std::string& msg)
+    : std::runtime_error(msg)
+  {
+  }
+};
 
 bool
-getPassword(std::string& password, const std::string& prompt)
-{
-#ifdef NDN_CXX_HAVE_GETPASS
-  bool isReady = false;
+getPassword(std::string& password, const std::string& prompt, bool shouldConfirm = true);
 
-  char* pw0 = 0;
-
-  pw0 = getpass(prompt.c_str());
-  if (!pw0)
-    return false;
-  std::string password1 = pw0;
-  memset(pw0, 0, strlen(pw0));
-
-  pw0 = getpass("Confirm:");
-  if (!pw0)
-    {
-      char* pw1 = const_cast<char*>(password1.c_str());
-      memset(pw1, 0, password1.size());
-      return false;
-    }
-
-  if (!password1.compare(pw0))
-    {
-      isReady = true;
-      password.swap(password1);
-    }
-
-  char* pw1 = const_cast<char*>(password1.c_str());
-  memset(pw1, 0, password1.size());
-  memset(pw0, 0, strlen(pw0));
-
-  if (password.empty())
-    return false;
-
-  return isReady;
-#else
-  return false;
-#endif // NDN_CXX_HAVE_GETPASS
-}
-
-ndn::shared_ptr<ndn::security::v1::IdentityCertificate>
-getIdentityCertificate(const std::string& fileName)
-{
-
-  if (fileName == "-")
-    return ndn::io::load<ndn::security::v1::IdentityCertificate>(std::cin);
-  else
-    return ndn::io::load<ndn::security::v1::IdentityCertificate>(fileName);
-}
-
+security::v2::Certificate
+loadCertificate(const std::string& fileName);
 
 /**
  * @brief An accumulating option value to handle multiple incrementing options.
@@ -112,11 +70,6 @@ public:
   {
   }
 
-  virtual
-  ~AccumulatorType()
-  {
-  }
-
   /// @brief Set the default value for this option.
   AccumulatorType*
   setDefaultValue(const T& t)
@@ -132,39 +85,40 @@ public:
    * to be applied on each occurrence of the option.
    */
   AccumulatorType*
-  setInterval(const T& t) {
+  setInterval(const T& t)
+  {
     m_interval = t;
     return this;
   }
 
-  virtual std::string
+  std::string
   name() const final
   {
     return std::string();
   }
 
   // There are no tokens for an AccumulatorType
-  virtual unsigned
+  unsigned
   min_tokens() const final
   {
     return 0;
   }
 
-  virtual unsigned
+  unsigned
   max_tokens() const final
   {
     return 0;
   }
 
   // Accumulating from different sources is silly.
-  virtual bool
+  bool
   is_composing() const final
   {
     return false;
   }
 
   // Requiring one or more appearances is unlikely.
-  virtual bool
+  bool
   is_required() const final
   {
     return false;
@@ -176,10 +130,8 @@ public:
    * Every appearance of the option simply increments the value
    * There should never be any tokens.
    */
-  virtual void
-  parse(boost::any& value_store,
-        const std::vector<std::string>& new_tokens,
-        bool utf8) const final
+  void
+  parse(boost::any& value_store, const std::vector<std::string>& new_tokens, bool utf8) const final
   {
     if (value_store.empty())
       value_store = T();
@@ -189,7 +141,7 @@ public:
   /**
    * @brief If the option doesn't appear, this is the default value.
    */
-  virtual bool
+  bool
   apply_default(boost::any& value_store) const final
   {
     value_store = m_default;
@@ -199,7 +151,7 @@ public:
   /**
    * @brief Notify the user function with the value of the value store.
    */
-  virtual void
+  void
   notify(const boost::any& value_store) const final
   {
     const T* val = boost::any_cast<T>(&value_store);
@@ -207,30 +159,35 @@ public:
       *m_store = *val;
   }
 
-#if BOOST_VERSION >= 105900
-  virtual bool
+#if (BOOST_VERSION >= 105900) && (BOOST_VERSION < 106500)
+  bool
   adjacent_tokens_only() const final
   {
     return false;
   }
-#endif // BOOST_VERSION >= 105900
+#endif // (BOOST_VERSION >= 105900) && (BOOST_VERSION < 106500)
 
 private:
-    T* m_store;
-    T m_interval;
-    T m_default;
+  T* m_store;
+  T m_interval;
+  T m_default;
 };
 
-template<typename T>
-AccumulatorType<T>* accumulator()
+template <typename T>
+AccumulatorType<T>*
+accumulator()
 {
   return new AccumulatorType<T>(0);
 }
 
-template<typename T>
-AccumulatorType<T>* accumulator(T* store)
+template <typename T>
+AccumulatorType<T>*
+accumulator(T* store)
 {
   return new AccumulatorType<T>(store);
 }
+
+} // namespace ndnsec
+} // namespace ndn
 
 #endif // NDN_TOOLS_NDNSEC_UTIL_HPP

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2013-2016 Regents of the University of California.
+/*
+ * Copyright (c) 2013-2018 Regents of the University of California.
  *
  * This file is part of ndn-cxx library (NDN C++ library with eXperimental eXtensions).
  *
@@ -19,40 +19,84 @@
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  */
 
-#define BOOST_TEST_MAIN 1
-#define BOOST_TEST_DYN_LINK 1
 #define BOOST_TEST_MODULE ndn-cxx Integrated Tests (Network Monitor)
+#include "tests/boost-test.hpp"
 
-#include "util/network-monitor.hpp"
+#include "ndn-cxx/net/network-monitor.hpp"
 
-#include "util/time.hpp"
-
-#include "boost-test.hpp"
+#include "ndn-cxx/net/network-address.hpp"
+#include "ndn-cxx/net/network-interface.hpp"
+#include "ndn-cxx/net/impl/link-type-helper.hpp"
+#include "ndn-cxx/util/string-helper.hpp"
+#include "ndn-cxx/util/time.hpp"
 
 #include <boost/asio/io_service.hpp>
 #include <iostream>
 
 namespace ndn {
-namespace util {
+namespace net {
+namespace tests {
 
-BOOST_AUTO_TEST_SUITE(UtilNetworkMonitor)
+BOOST_AUTO_TEST_SUITE(TestNetworkMonitor)
 
-BOOST_AUTO_TEST_CASE(Basic)
+static std::ostream&
+logEvent(const shared_ptr<const NetworkInterface>& ni = nullptr, std::ostream& os = std::cout)
+{
+  os << '[' << time::toIsoString(time::system_clock::now()) << "] ";
+  if (ni != nullptr)
+    os << ni->getName() << ": ";
+  return os;
+}
+
+BOOST_AUTO_TEST_CASE(Signals)
 {
   boost::asio::io_service io;
-  BOOST_REQUIRE_NO_THROW((NetworkMonitor(io)));
-
   NetworkMonitor monitor(io);
 
+  std::cout << "capabilities=" << AsHex{monitor.getCapabilities()} << std::endl;
+
   monitor.onNetworkStateChanged.connect([] {
-      std::cout << time::toString(time::system_clock::now())
-                << "\tReceived network state change event" << std::endl;
+    logEvent() << "onNetworkStateChanged" << std::endl;
+  });
+
+  monitor.onEnumerationCompleted.connect([&monitor] {
+    logEvent() << "onEnumerationCompleted" << std::endl;
+    for (const auto& ni : monitor.listNetworkInterfaces()) {
+      std::cout << *ni;
+    }
+  });
+
+  monitor.onInterfaceAdded.connect([] (const shared_ptr<const NetworkInterface>& ni) {
+    logEvent(ni) << "onInterfaceAdded\n" << *ni;
+    logEvent(ni) << "link-type: " << detail::getLinkType(ni->getName()) << std::endl;
+
+    ni->onAddressAdded.connect([ni] (const NetworkAddress& address) {
+      logEvent(ni) << "onAddressAdded " << address << std::endl;
     });
+
+    ni->onAddressRemoved.connect([ni] (const NetworkAddress& address) {
+      logEvent(ni) << "onAddressRemoved " << address << std::endl;
+    });
+
+    ni->onStateChanged.connect([ni] (InterfaceState oldState, InterfaceState newState) {
+      logEvent(ni) << "onStateChanged " << oldState << " -> " << newState << std::endl;
+      logEvent(ni) << "link-type: " << detail::getLinkType(ni->getName()) << std::endl;
+    });
+
+    ni->onMtuChanged.connect([ni] (uint32_t oldMtu, uint32_t newMtu) {
+      logEvent(ni) << "onMtuChanged " << oldMtu << " -> " << newMtu << std::endl;
+    });
+  }); // monitor.onInterfaceAdded.connect
+
+  monitor.onInterfaceRemoved.connect([] (const shared_ptr<const NetworkInterface>& ni) {
+    logEvent(ni) << "onInterfaceRemoved" << std::endl;
+  });
 
   io.run();
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestNetworkMonitor
 
-} // namespace util
+} // namespace tests
+} // namespace net
 } // namespace ndn
