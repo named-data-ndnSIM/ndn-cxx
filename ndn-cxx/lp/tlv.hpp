@@ -50,6 +50,13 @@ enum {
   TxSequence = 840,
   NonDiscovery = 844,
   PrefixAnnouncement = 848,
+  UtilTag = 849,
+  UtilInterestTag = 850,
+  GridTag = 851,
+  ReuseTag = 852,
+  FakeInterestTag = 853,
+  HopLimitTag = 854
+
 };
 
 enum {

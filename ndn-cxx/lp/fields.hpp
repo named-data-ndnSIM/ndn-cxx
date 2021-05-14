@@ -28,6 +28,8 @@
 #include "ndn-cxx/lp/geo-tag.hpp"
 #include "ndn-cxx/lp/nack-header.hpp"
 #include "ndn-cxx/lp/prefix-announcement-header.hpp"
+#include "ndn-cxx/lp/util-header.hpp"
+#include "ndn-cxx/lp/tags.hpp"
 
 #include <boost/mpl/set.hpp>
 
@@ -128,6 +130,13 @@ typedef FieldDecl<field_location_tags::Header,
                   tlv::GeoTag> GeoTagField;
 BOOST_CONCEPT_ASSERT((Field<GeoTagField>));
 
+typedef FieldDecl<field_location_tags::Header,
+                  GridHeader,
+                  tlv::GridTag> GridTagField;
+BOOST_CONCEPT_ASSERT((Field<GridTagField>));
+
+
+
 /** \brief Declare the Fragment field.
  *
  *  The fragment (i.e. payload) is the bytes between two provided iterators. During encoding,
@@ -138,12 +147,34 @@ typedef FieldDecl<field_location_tags::Fragment,
                   tlv::Fragment> FragmentField;
 BOOST_CONCEPT_ASSERT((Field<FragmentField>));
 
+typedef FieldDecl<field_location_tags::Header,
+                  EmptyValue,
+                  tlv::FakeInterestTag> FakeInterestTagField;
+BOOST_CONCEPT_ASSERT((Field<FakeInterestTagField>));
+
+typedef FieldDecl<field_location_tags::Header,
+                  EmptyValue,
+                  tlv::ReuseTag> ReuseTagField;
+BOOST_CONCEPT_ASSERT((Field<ReuseTagField>));
+
+typedef FieldDecl<field_location_tags::Header,
+                  UtilHeader,
+                  tlv::UtilTag> UtilTagField;
+BOOST_CONCEPT_ASSERT((Field<UtilTagField>));
+
+typedef FieldDecl<field_location_tags::Header,
+                  EmptyValue,
+                  tlv::UtilInterestTag> UtilInterestTagField;
+BOOST_CONCEPT_ASSERT((Field<UtilInterestTagField>));
+
+
 /** \brief Set of all field declarations.
  */
 typedef boost::mpl::set<
   FragmentField,
   SequenceField,
   FragIndexField,
+  ReuseTagField,
   FragCountField,
   PitTokenField,
   NackField,
@@ -156,8 +187,16 @@ typedef boost::mpl::set<
   NonDiscoveryField,
   PrefixAnnouncementField,
   HopCountTagField,
+  FakeInterestTagField,
+  GridTagField,
   GeoTagField
   > FieldSet;
+
+typedef boost::mpl::set<
+  UtilTagField,
+  UtilInterestTagField
+  > FieldSet2;
+
 
 } // namespace lp
 } // namespace ndn

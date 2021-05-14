@@ -36,6 +36,8 @@ operator<<(std::ostream& os, NackReason reason)
     return os << "Duplicate";
   case NackReason::NO_ROUTE:
     return os << "NoRoute";
+  case NackReason::OVERLOADED:
+    return os << "Server overloaded";
   default:
     return os << "None";
   }
@@ -125,6 +127,7 @@ NackHeader::getReason() const
   case NackReason::CONGESTION:
   case NackReason::DUPLICATE:
   case NackReason::NO_ROUTE:
+  case NackReason::OVERLOADED:
     return m_reason;
   default:
     return NackReason::NONE;

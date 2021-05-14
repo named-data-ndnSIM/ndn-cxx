@@ -27,9 +27,15 @@
 #include "ndn-cxx/lp/geo-tag.hpp"
 #include "ndn-cxx/lp/prefix-announcement-header.hpp"
 #include "ndn-cxx/tag.hpp"
+#include "ndn-cxx/lp/util-header.hpp"
+#include "ndn-cxx/lp/grid-header.hpp"
 
 namespace ndn {
 namespace lp {
+
+class UtilHeader;
+class GridHeader;
+
 
 /** \class IncomingFaceIdTag
  *  \brief a packet tag for IncomingFaceId field
@@ -85,6 +91,22 @@ typedef SimpleTag<uint64_t, 0x60000000> HopCountTag;
  *
  * This tag can be attached to Interest, Data, Nack.
  */
+
+/** \class UtilTag
+ * Tag for utilization of edge nodes
+ */
+typedef SimpleTag<UtilHeader, 0x60000001> UtilTag;
+
+typedef SimpleTag<EmptyValue, 0x60000002> UtilInterestTag;
+
+typedef SimpleTag<GridHeader, 0x60000003> GridTag;
+
+typedef SimpleTag<EmptyValue, 0x60000004> ReuseTag;
+
+typedef SimpleTag<EmptyValue, 0x60000005> FakeInterestTag;
+
+typedef SimpleTag<uint64_t, 0x60000006> HopLimitTag;
+
 class GeoTag; // 0x60000001, defined directly in geo-tag.hpp
 
 } // namespace lp

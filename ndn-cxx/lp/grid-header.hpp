@@ -17,85 +17,73 @@
  * <http://www.gnu.org/licenses/>.
  *
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
- *
- * @author Eric Newberry <enewberry@email.arizona.edu>
  */
 
-#ifndef NDN_CXX_LP_NACK_HEADER_HPP
-#define NDN_CXX_LP_NACK_HEADER_HPP
+#ifndef NDN_CXX_LP_GRID_HEADER_HPP
+#define NDN_CXX_LP_GRID_HEADER_HPP
 
-#include "ndn-cxx/encoding/block-helpers.hpp"
-#include "ndn-cxx/encoding/encoding-buffer.hpp"
 #include "ndn-cxx/lp/tlv.hpp"
+#include "ndn-cxx/lp/tags.hpp"
+
+#include <iostream>
+#include <vector>
 
 namespace ndn {
 namespace lp {
 
-/**
- * \brief indicates the reason type of a network NACK
- */
-enum class NackReason {
-  NONE = 0,
-  CONGESTION = 50,
-  DUPLICATE = 100,
-  NO_ROUTE = 150,
-  OVERLOADED = 200
+struct Grid {
+  double x_start;
+  double x_end;
+  double y_start;
+  double y_end;
 };
 
-std::ostream&
-operator<<(std::ostream& os, NackReason reason);
-
-/** \brief compare NackReason for severity
- *
- *  lp::NackReason::NONE is treated as most severe
+/** \brief represents a Util header field in NDNLP
  */
-bool
-isLessSevere(lp::NackReason x, lp::NackReason y);
-
-/**
- * \brief represents a Network NACK header
- */
-class NackHeader
+class GridHeader
 {
 public:
-  NackHeader();
+  class Error : public ndn::tlv::Error
+  {
+  public:
+    using ndn::tlv::Error::Error;
+  };
+  GridHeader();
 
   explicit
-  NackHeader(const Block& block);
+  GridHeader(const Block& block);
 
+  /** \brief constructs PrefixAnnouncementHeader using PrefixAnnouncement
+   *
+   *  \throw Error PrefixAnnouncement does not contain Data.
+   */
+  explicit
+  GridHeader(std::vector<Grid> grids);
+
+  /** \brief encodes the prefix announcement header to the wire format
+   *
+   *  \throw Error this instance does not contain a PrefixAnnouncement.
+   */
   template<encoding::Tag TAG>
   size_t
   wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  const Block&
-  wireEncode() const;
-
   void
   wireDecode(const Block& wire);
 
-public: // reason
-  /**
-   * \return reason code
-   * \retval NackReason::NONE if NackReason element does not exist or has an unknown code
-   */
-  NackReason
-  getReason() const;
+  const optional<std::vector<Grid>>&
+  getGrids() const
+  {
+    return m_grids;
+  }
 
-  /**
-   * \brief set reason code
-   * \param reason a reason code; NackReason::NONE clears the reason
-   */
-  NackHeader&
-  setReason(NackReason reason);
-
-private:
-  NackReason m_reason;
-  mutable Block m_wire;
+  optional<Grid> m_grid;
+  optional<std::vector<Grid>> m_grids;
 };
 
-NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(NackHeader);
+NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(GridHeader);
 
 } // namespace lp
 } // namespace ndn
 
-#endif // NDN_CXX_LP_NACK_HEADER_HPP
+#endif // NDN_CXX_LP_PREFIX_ANNOUNCEMENT_HEADER_HPP
